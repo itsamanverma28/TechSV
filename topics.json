@@ -1,0 +1,721 @@
+[
+  {
+    "id": "cache_stampede",
+    "title": "ONE KEY EXPIRES... 10,000 REQUESTS?!",
+    "subtitle": "Illustrative unprotected burst · same popular key",
+    "clientMax": 10000,
+    "cacheNodeName": "REDIS CACHE",
+    "cacheKey": "POPULAR_KEY",
+    "cacheStatus": "CACHE EXPIRED",
+    "cacheTtl": "TTL: 0s",
+    "dbMax": 10000,
+    "dbStatus": "HIGH LOAD · DB OVERLOAD",
+    "beats": {
+      "cacheBreak": "expire",
+      "dbOverload": "crash"
+    },
+    "voiceover": "Socho aapka system smooth chal raha tha, tabhi achanak Redis se ek single popular key expire ho jati hai. Ab agle hi microsecond mein 10,000 users wahi same data maangte hain. Redis ke paas data nahi hai — Cache Miss! Isse bolte hain Cache Stampede. Saari 10,000 requests ek sath seedhe Database par girti hain aur Database crash ho jata hai. Iska production fix hai Mutex Lock aur TTL Jitter."
+  },
+  {
+    "id": "cache_avalanche",
+    "title": "REDIS CRASHED... ALL KEYS GONE!",
+    "subtitle": "Cache Avalanche · Synchronized TTL Expiration",
+    "clientMax": 25000,
+    "cacheNodeName": "REDIS CLUSTER",
+    "cacheKey": "ALL_KEYS_*",
+    "cacheStatus": "ALL KEYS EXPIRED",
+    "cacheTtl": "CLUSTER REBOOT",
+    "dbMax": 25000,
+    "dbStatus": "DATABASE DOWN · 100% CPU",
+    "beats": {
+      "cacheBreak": "khali",
+      "dbOverload": "database"
+    },
+    "voiceover": "Agar ek key expire hone par Cache Stampede hota hai, toh socho agar poora cache cluster ek sath khali ho jaye toh kya hoga? Isse bolte hain Cache Avalanche. Jab aap bulk warm-up karte hain same TTL ke sath, toh laakhon keys theek 1 ghante baad ek hi second mein expire ho jati hain. Result? Poora traffic database par girta hai. Iska fix hai hamesha TTL mein random jitter add karna."
+  },
+  {
+    "id": "rate_limiter_burst",
+    "title": "BOT ATTACK: 50,000 HITS / SEC!",
+    "subtitle": "Token Bucket Rate Limiting in Action",
+    "clientMax": 50000,
+    "cacheNodeName": "API GATEWAY RATE LIMITER",
+    "cacheKey": "TOKEN_BUCKET: CLIENT_IP",
+    "cacheStatus": "BUCKET EMPTY (429)",
+    "cacheTtl": "TOKENS: 0",
+    "dbMax": 100,
+    "dbStatus": "DATABASE PROTECTED · 0% IMPACT",
+    "beats": {
+      "cacheBreak": "Token"
+    },
+    "voiceover": "Ek bot ne aapke login endpoint par per second 50,000 requests bhej di! Bina rate limiter ke aapka database turant choke ho jayega. Lekin Token Bucket algorithm ke sath, Redis Gateway par hi har client ko tokens assign karta hai. Jaise hi tokens khatam hue, 429 Too Many Requests return hota hai aur Database bilkul safe rehta hai."
+  },
+  {
+    "id": "cache_stampede_storyboard",
+    "title": "ONE KEY EXPIRES... 10,000 REQUESTS?!",
+    "subtitle": "Cache Stampede · Mutex Lock + Stale-While-Revalidate",
+    "clientMax": 10000,
+    "cacheNodeName": "REDIS NODE",
+    "cacheKey": "POPULAR_KEY",
+    "cacheStatus": "CACHE EXPIRED",
+    "cacheTtl": "TTL: 0s",
+    "dbMax": 10000,
+    "dbStatus": "HIGH LOAD · DB OVERLOAD",
+    "beats": {
+      "cacheBreak": "expire",
+      "dbOverload": "Database",
+      "shield": "Mutex",
+      "checklist": "jitter"
+    },
+    "shieldLabel": "MUTEX LOCK (SETNX) + STALE-WHILE-REVALIDATE",
+    "checklistItems": [
+      "Add TTL Jitter (Random ±10%)"
+    ],
+    "voiceover": "Socho aapka system normal chal raha tha, tabhi achanak Redis se ek single popular key expire ho jati hai. Ab agle hi microsecond mein 10,000 users wahi same data maangte hain. Redis ke paas data nahi hai — Cache Miss! Isse bolte hain Cache Stampede ya Thundering Herd! Saari 10,000 requests ek sath seedhe Database par girti hain aur Database crash ho jata hai. Isko rokne ke do best tareeqe hain: Pehla, Mutex Lock — sirf pehli request DB par jayegi aur baki 9,999 wait karengi. Dusra, Stale-While-Revalidate — puraana data turant serve karo aur background mein cache refresh karo. Pro tip: Apne cache TTL mein hamesha random jitter add karo taaki sabhi keys ek sath expire na hon."
+  },
+  {
+    "id": "kafka_vs_rabbitmq",
+    "composition": "KafkaVsRabbitMQ",
+    "title": "KAFKA vs RABBITMQ",
+    "subtitle": "Message padhne ke baad kahan jaata hai?",
+    "beats": {
+      "orderSent": "order",
+      "rabbitAck": "delete",
+      "newService": "naya",
+      "replay": "replay",
+      "summary": "Summary"
+    },
+    "voiceover": "Kafka aur RabbitMQ, dono message broker hain, lekin ek bada farak hai. Order service har order ko dono mein bhejti hai. Har order ek message hai. RabbitMQ message ko read hone ke baad delete kar deta hai. Kafka har message ko default 7 din tak rakhta hai. Ab ek naya service join hota hai, analytics ke liye. Kafka offset se purane messages ko replay kar sakta hai. RabbitMQ mein woh message ab bacha hi nahi. Email service dono ko process karti hai, aur har message ka ACK bhejti hai. Summary: data dobara chahiye to Kafka, aur task queue ke liye RabbitMQ."
+  },
+  {
+    "id": "circuit_breaker",
+    "composition": "ConceptScene",
+    "title": "CIRCUIT BREAKER",
+    "subtitle": "Slow service ko bachane ka fuse",
+    "beats": {
+      "fail": "slow",
+      "open": "OPEN",
+      "rest": "load",
+      "recover": "CLOSED",
+      "summary": "Summary"
+    },
+    "scene": {
+      "nodes": [
+        {
+          "id": "client",
+          "label": "CLIENT",
+          "sub": "user requests",
+          "color": "#22d3ee"
+        },
+        {
+          "id": "api",
+          "label": "API GATEWAY",
+          "sub": "circuit breaker",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "payment",
+          "label": "PAYMENT SERVICE",
+          "sub": "external dependency",
+          "color": "#a78bfa"
+        }
+      ],
+      "rows": [
+        [
+          "client"
+        ],
+        [
+          "api"
+        ],
+        [
+          "payment"
+        ]
+      ],
+      "states": [
+        {
+          "node": "payment",
+          "at": "fail",
+          "color": "#ef4444",
+          "badge": "TIMEOUT · 10s"
+        },
+        {
+          "node": "api",
+          "at": "open",
+          "color": "#f59e0b",
+          "badge": "CIRCUIT OPEN · FAIL FAST"
+        },
+        {
+          "node": "payment",
+          "at": "rest",
+          "color": "#22c55e",
+          "badge": "NO LOAD"
+        },
+        {
+          "node": "api",
+          "at": "recover",
+          "color": "#22c55e",
+          "badge": "CIRCUIT CLOSED"
+        }
+      ],
+      "counters": [
+        {
+          "node": "client",
+          "label": "REQUESTS / SEC",
+          "from": 100,
+          "to": 5000,
+          "start": null,
+          "end": "open"
+        },
+        {
+          "node": "api",
+          "label": "THREADS BUSY",
+          "from": 10,
+          "to": 200,
+          "start": "fail",
+          "end": "open"
+        }
+      ],
+      "summary": {
+        "at": "summary",
+        "text": "Circuit breaker slow service ko bachata hai, aur user ko turant error deta hai."
+      }
+    },
+    "voiceover": "Socho ek payment service slow ho gaya hai, aur har request 10 second tak latak rahi hai. API gateway har request ko us service tak bhejti rehti hai, aur threads khatam hone lagte hain. Circuit breaker ek fuse ki tarah kaam karta hai. Failures ginne ke baad circuit OPEN ho jata hai. Ab requests API par hi fail fast ho jati hain, payment service par load nahi padta. Kuch der baad ek test request jati hai. Agar woh successful hai, to circuit wapas CLOSED ho jata hai. Summary: ye slow service ko bachata hai, aur user ko turant error deta hai."
+  },
+  {
+    "id": "database_choice",
+    "composition": "ExplainerScene",
+    "title": "DATABASE KAUN SA?",
+    "subtitle": "Postgres, MongoDB, Redis, Cassandra",
+    "beats": {
+      "app": "delivery",
+      "questions": "sawaal",
+      "postgres": "relational",
+      "acid": "transaction",
+      "mongo": "documents",
+      "redis": "key",
+      "hot": "super",
+      "cassandra": "wide",
+      "joins": "joins",
+      "summary": "Summary",
+      "cta": "Agle",
+      "down": "down"
+    },
+    "scenes": [
+      {
+        "beat": null,
+        "kind": "headline",
+        "tag": "SYSTEM DESIGN",
+        "title": "Database kaun sa?",
+        "body": "Postgres · MongoDB · Redis · Cassandra"
+      },
+      {
+        "beat": "app",
+        "particles": 6,
+        "kind": "cards",
+        "tag": "EXAMPLE",
+        "title": "Food delivery app",
+        "body": "Har order ka data store hona chahiye",
+        "items": [
+          {
+            "label": "Order #4821",
+            "sub": "Pizza · Paid"
+          },
+          {
+            "label": "Rider",
+            "sub": "assigned · lat, lng"
+          },
+          {
+            "label": "User",
+            "sub": "address · history"
+          },
+          {
+            "label": "Payment",
+            "sub": "status · amount"
+          }
+        ]
+      },
+      {
+        "beat": "questions",
+        "kind": "cards",
+        "tag": "4 SAWAAL",
+        "title": "Pehle ye poocho",
+        "items": [
+          {
+            "label": "STRUCTURE?",
+            "sub": "fixed ya flexible"
+          },
+          {
+            "label": "READ PATTERN?",
+            "sub": "kaise padha jayega"
+          },
+          {
+            "label": "WRITE VOLUME?",
+            "sub": "kitne writes per second"
+          },
+          {
+            "label": "COST OF WRONG CHOICE?",
+            "sub": "galat choice ki keemat",
+            "color": "#ef4444"
+          }
+        ]
+      },
+      {
+        "beat": "postgres",
+        "zoom": 1.15,
+        "kind": "hero",
+        "tag": "SQL",
+        "title": "Postgres",
+        "hero": {
+          "emoji": "🔒",
+          "title": "POSTGRESQL",
+          "sub": "ACID GUARANTEE · STRICT SCHEMA",
+          "badge": "STATUS: 100% CONSISTENT",
+          "color": "#3b82f6"
+        }
+      },
+      {
+        "beat": "acid",
+        "kind": "checklist",
+        "tag": "ACID",
+        "title": "All or nothing",
+        "items": [
+          {
+            "label": "ORDER",
+            "sub": "Pending → Paid",
+            "delay": 0.5
+          },
+          {
+            "label": "PAYMENT",
+            "sub": "Card charge",
+            "delay": 2.2
+          },
+          {
+            "label": "COUPON",
+            "sub": "Discount check",
+            "delay": 3.9,
+            "fail": true
+          }
+        ],
+        "rollbackAt": 5.6,
+        "cursor": {
+          "x": 640,
+          "y": 720,
+          "at": 0.2
+        },
+        "sfx": "pop",
+        "banner": "TRANSACTION · ALL 3 OR NONE"
+      },
+      {
+        "beat": "mongo",
+        "sfx": "pop",
+        "kind": "terminal",
+        "tag": "MONGODB",
+        "title": "Document database",
+        "code": [
+          {
+            "text": "{"
+          },
+          {
+            "text": "  \"name\": \"Pizza Palace\","
+          },
+          {
+            "text": "  \"toppings\": [\"olive\", \"corn\"]"
+          },
+          {
+            "text": "}"
+          }
+        ],
+        "banner": "HAR DOCUMENT KA ALAG STRUCTURE",
+        "typeSpeed": 26
+      },
+      {
+        "beat": "redis",
+        "zoom": 1.2,
+        "sfx": "whoosh",
+        "kind": "code",
+        "tag": "REDIS",
+        "title": "Key → value",
+        "code": [
+          {
+            "text": "session:42  →  \"logged_in\""
+          },
+          {
+            "text": "rider:77    →  { lat, lng }"
+          },
+          {
+            "text": "menu:hot    →  [ pizza, ... ]"
+          }
+        ],
+        "banner": "DATA RAM MEIN · SUPER FAST"
+      },
+      {
+        "beat": "hot",
+        "sfx": "pop",
+        "kind": "race",
+        "tag": "REDIS vs POSTGRES",
+        "title": "Speed race",
+        "race": {
+          "lanes": [
+            {
+              "label": "REDIS · RAM",
+              "color": "#ef4444",
+              "seconds": 0.4,
+              "ms": 0.2
+            },
+            {
+              "label": "POSTGRES · DISK",
+              "color": "#60a5fa",
+              "seconds": 6,
+              "ms": 120
+            }
+          ]
+        },
+        "banner": "SOURCE OF TRUTH → persistent DB"
+      },
+      {
+        "beat": "cassandra",
+        "particles": 4,
+        "kind": "hero",
+        "tag": "CASSANDRA",
+        "title": "Built for writes",
+        "hero": {
+          "emoji": "🌐",
+          "title": "CASSANDRA",
+          "sub": "Wide-column · heavy writes · har node equal",
+          "badge": "NODE DOWN? WRITES CHALTE REHTE HAIN",
+          "color": "#06b6d4"
+        }
+      },
+      {
+        "beat": "down",
+        "kind": "cluster",
+        "tag": "CASSANDRA",
+        "title": "Node down? Traffic reroute",
+        "items": [
+          {
+            "label": "NODE 1",
+            "sub": "alive"
+          },
+          {
+            "label": "NODE 2",
+            "sub": "alive"
+          },
+          {
+            "label": "NODE 3",
+            "sub": "alive"
+          }
+        ],
+        "cluster": {
+          "failAt": 2.5,
+          "crash": 2
+        },
+        "banner": "WRITES CONTINUE · NO SINGLE POINT"
+      },
+      {
+        "beat": "joins",
+        "shake": true,
+        "sfx": "thud",
+        "kind": "terminal",
+        "tag": "CASSANDRA",
+        "title": "No joins",
+        "code": [
+          {
+            "text": "✕ SELECT * FROM orders JOIN users",
+            "color": "#ef4444"
+          },
+          {
+            "text": "✓ table orders_by_user",
+            "color": "#22c55e"
+          }
+        ],
+        "banner": "QUERY KE HISAAB SE TABLE DESIGN KARO"
+      },
+      {
+        "beat": "summary",
+        "kind": "cards",
+        "tag": "SUMMARY",
+        "title": "Kaun sa kab?",
+        "items": [
+          {
+            "label": "Postgres",
+            "sub": "relations + transactions"
+          },
+          {
+            "label": "MongoDB",
+            "sub": "flexible documents"
+          },
+          {
+            "label": "Redis",
+            "sub": "fast cache, sessions"
+          },
+          {
+            "label": "Cassandra",
+            "sub": "heavy writes"
+          }
+        ]
+      },
+      {
+        "beat": "cta",
+        "kind": "cta",
+        "tag": "NEXT",
+        "title": "Cache stampede",
+        "body": "Agle video mein: cache stampede kaise rokein",
+        "banner": "FOLLOW FOR PART 2"
+      }
+    ],
+    "voiceover": "Database choose karna system design ka sabse bada decision hai. Postgres, MongoDB, Redis ya Cassandra, kaunsa lein? Maan lo ek food delivery app hai. Har order ka data kahin store hona chahiye: user, items, payment aur rider ka status. Database chunne se pehle 4 sawaal poocho. Structure kaisa hai? Read pattern kya hai? Write volume kitna hai? Aur galat choice ki cost kya hogi? In chaaron ke jawab se faisla ho jata hai. Postgres ek relational database hai. Isme tables, rows aur strict schema hote hain, aur complex queries ke liye best hai. Jab data ke beech relation important ho, tab ye sahi choice hai. Transaction ka matlab hai, order, payment aur coupon teeno ek saath ho ya koi nahi. Isko ACID kehte hain. Postgres ye guarantee deta hai, isliye paise aur orders ke liye ye safe hai. MongoDB ek document database hai. Data JSON jaise documents mein store hota hai, aur har document ka structure alag ho sakta hai. Redis ek key-value store hai. Data RAM mein rehta hai, isliye response time microseconds mein aata hai. Session aur cart jaise chhote data ke liye ye perfect hai. Isliye Redis super fast hai, hot data ke liye, jaise cache aur sessions. Lekin RAM mahanga hai aur limited bhi hai. Source of truth hamesha persistent database mein rakho. Cassandra wide-column database hai, jo writes ke liye bana hai. Isme koi single leader nahi hota, har node equal hai. Isliye ek node down ho jaye to bhi writes chalte rehte hain. Lekin Cassandra mein joins nahi hote, isliye table ko query ke hisaab se design karna padta hai. Summary: Postgres relations aur transactions ke liye, MongoDB flexible documents ke liye, Redis fast cache ke liye, aur Cassandra heavy writes ke liye. Ye faisla use case se hota hai. Agle video mein dekhenge cache stampede kaise rokein. Follow karo, aur batao aapka favourite database kaunsa hai."
+  },
+  {
+    "id": "database_director",
+    "composition": "DirectorScene",
+    "title": "POSTGRES vs REDIS vs CASSANDRA",
+    "subtitle": "Kaunsa kab chalta hai",
+    "beats": {
+      "postgres": "ACID",
+      "redis": "RAM",
+      "cassandra": "wide",
+      "down": "down",
+      "summary": "Summary"
+    },
+    "nodes": [
+      {
+        "id": "postgres",
+        "label": "POSTGRES",
+        "sub": "relations + ACID",
+        "color": "#336791",
+        "x": 220,
+        "y": 800
+      },
+      {
+        "id": "redis",
+        "label": "REDIS",
+        "sub": "RAM · key-value",
+        "color": "#dc2626",
+        "x": 540,
+        "y": 800
+      },
+      {
+        "id": "cassandra",
+        "label": "CASSANDRA",
+        "sub": "wide-column · writes",
+        "color": "#0284c7",
+        "x": 860,
+        "y": 800
+      }
+    ],
+    "edges": [],
+    "visual_timeline": [
+      {
+        "beat": "start",
+        "action": "TITLE_PUNCH",
+        "sfx": "whoosh.mp3"
+      },
+      {
+        "beat": "postgres",
+        "camera": {
+          "zoom": 1.15,
+          "focus": "postgres"
+        },
+        "highlight_node": "postgres",
+        "action": "LOCK_SNAP",
+        "metric": {
+          "label": "ACID GUARANTEE",
+          "status": "LOCKED"
+        },
+        "sfx": "metal_click.mp3"
+      },
+      {
+        "beat": "redis",
+        "camera": {
+          "zoom": 1.25,
+          "focus": "redis"
+        },
+        "highlight_node": "redis",
+        "action": "GAUGE_MAX",
+        "metric": {
+          "label": "LATENCY",
+          "value": "0.2ms",
+          "barPercent": 95
+        },
+        "sfx": "speed_ping.mp3"
+      },
+      {
+        "beat": "cassandra",
+        "camera": {
+          "zoom": 1.0,
+          "focus": "center"
+        },
+        "highlight_node": "cassandra"
+      },
+      {
+        "beat": "down",
+        "camera": {
+          "zoom": 1.0,
+          "focus": "center",
+          "shake": true
+        },
+        "highlight_node": "cassandra",
+        "action": "NODE_FAILOVER",
+        "details": "Node 3 DOWN · traffic doosre nodes par reroute",
+        "sfx": "warning_alarm.mp3"
+      },
+      {
+        "beat": "summary",
+        "camera": {
+          "zoom": 1.0,
+          "focus": "center"
+        },
+        "highlight_node": null
+      }
+    ],
+    "voiceover": "Postgres, Redis aur Cassandra, teeno ka kaam alag hai. Chaliye dekhte hain kaunsa kab chalta hai. Postgres mein ACID transaction milta hai, yaani data hamesha consistent rehta hai. Redis data RAM mein rakhta hai, isliye latency sirf point two milliseconds hai. Cassandra wide-column database hai, aur heavy writes ke liye bana hai. Ek node down ho jaye, to traffic doosre nodes par reroute ho jata hai. Summary: relations ke liye Postgres, speed ke liye Redis, aur heavy writes ke liye Cassandra."
+  },
+  {
+    "id": "cache_stampede_arc",
+    "composition": "ExplainerScene",
+    "title": "CACHE STAMPEDE",
+    "subtitle": "4-act visual story",
+    "beats": {
+      "spark": "expire",
+      "flood": "flood",
+      "crash": "crash",
+      "mutex": "Mutex",
+      "setnx": "SETNX",
+      "refresh": "refresh",
+      "tip": "jitter"
+    },
+    "scenes": [
+      {
+        "beat": null,
+        "kind": "counter",
+        "tag": "ACT 1 · NORMAL",
+        "title": "Sab smooth chal raha hai",
+        "particles": 3,
+        "counter": {
+          "from": 100,
+          "to": 100,
+          "unit": " req/s",
+          "duration": 6,
+          "label": "REQUESTS / SEC",
+          "color": "#22c55e"
+        }
+      },
+      {
+        "beat": "spark",
+        "kind": "hero",
+        "sfx": "thud",
+        "tag": "ACT 2 · SPARK",
+        "title": "Ek key expire",
+        "hero": {
+          "emoji": "🔑",
+          "title": "REDIS · POPULAR_KEY",
+          "stat": "TTL: 0s",
+          "badge": "CACHE EXPIRED",
+          "color": "#ef4444"
+        }
+      },
+      {
+        "beat": "flood",
+        "kind": "counter",
+        "sfx": "whoosh",
+        "tag": "ACT 3 · DISASTER",
+        "title": "Ek flood, same key",
+        "particles": 40,
+        "counter": {
+          "from": 0,
+          "to": 10000,
+          "unit": "",
+          "duration": 6,
+          "label": "REQUESTS ON DATABASE",
+          "decimals": 0,
+          "color": "#ef4444"
+        }
+      },
+      {
+        "beat": "crash",
+        "kind": "hero",
+        "shake": true,
+        "zoom": 1.1,
+        "sfx": "thud",
+        "tag": "ACT 3 · CRASH",
+        "title": "Database crash",
+        "hero": {
+          "emoji": "🔥",
+          "title": "DATABASE",
+          "stat": "CPU 100%",
+          "statLabel": "STATUS: CRASHED",
+          "barPercent": 100,
+          "badge": "WARNING · OVERLOAD",
+          "color": "#ef4444"
+        }
+      },
+      {
+        "beat": "mutex",
+        "kind": "hero",
+        "sfx": "pop",
+        "tag": "ACT 4 · HERO",
+        "title": "Mutex Lock",
+        "hero": {
+          "emoji": "🛡️",
+          "title": "MUTEX LOCK",
+          "sub": "Sirf 1 request DB tak · baaki wait",
+          "badge": "SETNX",
+          "color": "#22c55e"
+        }
+      },
+      {
+        "beat": "setnx",
+        "kind": "terminal",
+        "tag": "REDIS",
+        "title": "Lock lo, atomically",
+        "typeSpeed": 22,
+        "code": [
+          {
+            "text": "SET lock:POPULAR_KEY 1 NX EX 5",
+            "color": "#e2e8f0",
+            "start": 0
+          },
+          {
+            "text": "→ OK  (lock mila · sirf yeh request DB jaayegi)",
+            "color": "#4ade80",
+            "start": 2.6
+          }
+        ]
+      },
+      {
+        "beat": "refresh",
+        "kind": "checklist",
+        "sfx": "pop",
+        "tag": "ACT 4 · RESOLUTION",
+        "title": "Door wapas green",
+        "items": [
+          {
+            "label": "Request 1",
+            "sub": "DB se data laya",
+            "delay": 0.5
+          },
+          {
+            "label": "Redis refresh",
+            "sub": "key wapas bhari",
+            "delay": 2.0
+          },
+          {
+            "label": "9,999 requests",
+            "sub": "instant serve",
+            "delay": 3.5
+          }
+        ],
+        "banner": "PEHLI REQUEST → CACHE REFRESH"
+      },
+      {
+        "beat": "tip",
+        "kind": "cta",
+        "tag": "PRO TIP",
+        "title": "TTL Jitter",
+        "body": "TTL mein random ±10% add karo, taaki keys ek saath expire na hon.",
+        "banner": "FOLLOW FOR PART 2"
+      }
+    ],
+    "voiceover": "Socho aapka system normal chal raha hai. Har second sau requests aati hain, sab green signal par. Tabhi Redis ki ek popular key ka TTL zero ho jata hai, aur wo expire ho jati hai. Agle hi microsecond mein das hazaar users wahi key maangte hain, ek flood ki tarah. Cache miss hote hi saari requests seedhe database par girti hain, aur database crash ho jata hai. Fix: ek Mutex Lock. Lock lene ke liye SETNX command use hota hai. Sirf pehli request database tak jaati hai, baaki sab line mein wait karti hain. Pehli request data laati hai aur Redis ko refresh karti hai. Phir door wapas green, aur saari 9,999 requests instant serve hoti hain. Pro tip: TTL mein random jitter add karo, taaki keys ek saath expire na hon."
+  }
+]
