@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -11,7 +12,10 @@ PUBLIC_DIR = "public"
 OUTPUT_DIR = "output"
 ENTRY_POINT = "src/index.ts"
 EDGE_TTS = os.path.join(".venv", "bin", "edge-tts")
+# Calm, humble delivery: slower and slightly lower than the default voice.
 VOICE = "en-IN-PrabhatNeural"
+VOICE_RATE = "-8%"
+VOICE_PITCH = "-4Hz"
 TAIL_SECONDS = 1.5  # silence after the last word so the ending is not cut off
 TICKS_PER_SECOND = 10_000_000  # edge-tts reports offsets in 100-nanosecond ticks
 DEFAULT_COMPOSITION = "SystemDesignShort"
@@ -21,9 +25,9 @@ os.makedirs(PUBLIC_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-async def synthesize(text, audio_path):
+async def synthesize(text, audio_path, voice=VOICE, rate=VOICE_RATE, pitch=VOICE_PITCH):
     """Write the voiceover MP3 and return the spoken words with their timings in seconds."""
-    communicate = edge_tts.Communicate(text, VOICE, boundary="WordBoundary")
+    communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch, boundary="WordBoundary")
     words = []
     with open(audio_path, "wb") as audio:
         async for chunk in communicate.stream():
@@ -181,6 +185,56 @@ def resolve_director(topic, beat_times, duration):
     return sorted(resolved, key=lambda event: event["time"])
 
 
+WHISPER_PYTHON = os.path.join(".whisper-venv", "bin", "python")
+FFMPEG = shutil.which("ffmpeg") or "/usr/local/bin/ffmpeg"
+
+
+def align_recorded_voice(topic, audio_path):
+    """Use the topic's own recording as the voiceover; Whisper gives the word timings."""
+    topic_id = topic["id"]
+    source = topic["voice_file"]
+    if not os.path.exists(source):
+        raise FileNotFoundError(f"[{topic_id}] voice_file not found: {source}")
+
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-i", source, "-codec:a", "libmp3lame", "-q:a", "2", audio_path], check=True)
+
+    script_path = f"temp_script_{topic_id}.txt"
+    words_path = f"temp_words_{topic_id}.json"
+    with open(script_path, "w", encoding="utf-8") as f:
+        f.write(topic["voiceover"])
+    try:
+        subprocess.run([WHISPER_PYTHON, "align_voice.py", audio_path, script_path, words_path], check=True)
+        with open(words_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    finally:
+        for path in (script_path, words_path):
+            if os.path.exists(path):
+                os.remove(path)
+
+
+def render_thumbnail(topic, output_image_path):
+    """Render the eye-catching cover still (9:16) for a topic. Its hook defaults to the title."""
+    style = topic.get("thumbnail", {})
+    props = {
+        "hook": topic.get("hook", topic["title"]),
+        "subtitle": topic.get("subtitle"),
+        "emoji": style.get("emoji"),
+        "stat": style.get("stat"),
+        "accent": style.get("accent", "#facc15"),
+    }
+    temp_props_file = f"temp_props_{topic['id']}_thumb.json"
+    with open(temp_props_file, "w", encoding="utf-8") as pf:
+        json.dump(props, pf)
+    try:
+        subprocess.run(
+            ["npx", "remotion", "still", ENTRY_POINT, "Thumbnail", output_image_path, f"--props={temp_props_file}"],
+            check=True,
+        )
+    finally:
+        if os.path.exists(temp_props_file):
+            os.remove(temp_props_file)
+
+
 def render_video(topic_id, composition, props, output_video_path):
     temp_props_file = f"temp_props_{topic_id}.json"
     with open(temp_props_file, "w", encoding="utf-8") as pf:
@@ -222,7 +276,16 @@ for index, topic in enumerate(topics, start=1):
 
     # 1. Generate Voiceover using Edge-TTS and get word timings from the same run
     print("  🎙️ Generating Audio...")
-    words = asyncio.run(synthesize(topic["voiceover"], audio_path))
+    if topic.get("voice_file"):
+        words = align_recorded_voice(topic, audio_path)
+    else:
+        voice_style = topic.get("voice", {})
+        words = asyncio.run(synthesize(
+            topic["voiceover"], audio_path,
+            voice=voice_style.get("voice", VOICE),
+            rate=voice_style.get("rate", VOICE_RATE),
+            pitch=voice_style.get("pitch", VOICE_PITCH),
+        ))
     if not words:
         raise RuntimeError(f"[{topic_id}] edge-tts returned no word timings")
 
@@ -266,6 +329,11 @@ for index, topic in enumerate(topics, start=1):
     print(f"  🎬 Rendering MP4 -> {output_video_path}...")
     render_video(topic_id, composition, props, output_video_path)
 
-    print(f"  ✅ Completed: {output_video_path}\n")
+    # 5. Cover thumbnail (eye-catching hook still)
+    thumbnail_path = os.path.join(OUTPUT_DIR, f"{topic_id}_thumbnail.png")
+    print(f"  🖼️ Rendering thumbnail -> {thumbnail_path}...")
+    render_thumbnail(topic, thumbnail_path)
+
+    print(f"  ✅ Completed: {output_video_path} + {thumbnail_path}\n")
 
 print("🎉 All videos rendered successfully in the 'output/' folder!")

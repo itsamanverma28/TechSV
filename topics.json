@@ -463,7 +463,13 @@
         "banner": "FOLLOW FOR PART 2"
       }
     ],
-    "voiceover": "Database choose karna system design ka sabse bada decision hai. Postgres, MongoDB, Redis ya Cassandra, kaunsa lein? Maan lo ek food delivery app hai. Har order ka data kahin store hona chahiye: user, items, payment aur rider ka status. Database chunne se pehle 4 sawaal poocho. Structure kaisa hai? Read pattern kya hai? Write volume kitna hai? Aur galat choice ki cost kya hogi? In chaaron ke jawab se faisla ho jata hai. Postgres ek relational database hai. Isme tables, rows aur strict schema hote hain, aur complex queries ke liye best hai. Jab data ke beech relation important ho, tab ye sahi choice hai. Transaction ka matlab hai, order, payment aur coupon teeno ek saath ho ya koi nahi. Isko ACID kehte hain. Postgres ye guarantee deta hai, isliye paise aur orders ke liye ye safe hai. MongoDB ek document database hai. Data JSON jaise documents mein store hota hai, aur har document ka structure alag ho sakta hai. Redis ek key-value store hai. Data RAM mein rehta hai, isliye response time microseconds mein aata hai. Session aur cart jaise chhote data ke liye ye perfect hai. Isliye Redis super fast hai, hot data ke liye, jaise cache aur sessions. Lekin RAM mahanga hai aur limited bhi hai. Source of truth hamesha persistent database mein rakho. Cassandra wide-column database hai, jo writes ke liye bana hai. Isme koi single leader nahi hota, har node equal hai. Isliye ek node down ho jaye to bhi writes chalte rehte hain. Lekin Cassandra mein joins nahi hote, isliye table ko query ke hisaab se design karna padta hai. Summary: Postgres relations aur transactions ke liye, MongoDB flexible documents ke liye, Redis fast cache ke liye, aur Cassandra heavy writes ke liye. Ye faisla use case se hota hai. Agle video mein dekhenge cache stampede kaise rokein. Follow karo, aur batao aapka favourite database kaunsa hai."
+    "voiceover": "Database choose karna system design ka sabse bada decision hai. Postgres, MongoDB, Redis ya Cassandra, kaunsa lein? Maan lo ek food delivery app hai. Har order ka data kahin store hona chahiye: user, items, payment aur rider ka status. Database chunne se pehle 4 sawaal poocho. Structure kaisa hai? Read pattern kya hai? Write volume kitna hai? Aur galat choice ki cost kya hogi? In chaaron ke jawab se faisla ho jata hai. Postgres ek relational database hai. Isme tables, rows aur strict schema hote hain, aur complex queries ke liye best hai. Jab data ke beech relation important ho, tab ye sahi choice hai. Transaction ka matlab hai, order, payment aur coupon teeno ek saath ho ya koi nahi. Isko ACID kehte hain. Postgres ye guarantee deta hai, isliye paise aur orders ke liye ye safe hai. MongoDB ek document database hai. Data JSON jaise documents mein store hota hai, aur har document ka structure alag ho sakta hai. Redis ek key-value store hai. Data RAM mein rehta hai, isliye response time microseconds mein aata hai. Session aur cart jaise chhote data ke liye ye perfect hai. Isliye Redis super fast hai, hot data ke liye, jaise cache aur sessions. Lekin RAM mahanga hai aur limited bhi hai. Source of truth hamesha persistent database mein rakho. Cassandra wide-column database hai, jo writes ke liye bana hai. Isme koi single leader nahi hota, har node equal hai. Isliye ek node down ho jaye to bhi writes chalte rehte hain. Lekin Cassandra mein joins nahi hote, isliye table ko query ke hisaab se design karna padta hai. Summary: Postgres relations aur transactions ke liye, MongoDB flexible documents ke liye, Redis fast cache ke liye, aur Cassandra heavy writes ke liye. Ye faisla use case se hota hai. Agle video mein dekhenge cache stampede kaise rokein. Follow karo, aur batao aapka favourite database kaunsa hai.",
+    "hook": "POSTGRES, MONGO, REDIS ya CASSANDRA?",
+    "thumbnail": {
+      "emoji": "🗄️",
+      "stat": "4 DATABASES",
+      "accent": "#38bdf8"
+    }
   },
   {
     "id": "database_director",
@@ -716,6 +722,219 @@
         "banner": "FOLLOW FOR PART 2"
       }
     ],
-    "voiceover": "Socho aapka system normal chal raha hai. Har second sau requests aati hain, sab green signal par. Tabhi Redis ki ek popular key ka TTL zero ho jata hai, aur wo expire ho jati hai. Agle hi microsecond mein das hazaar users wahi key maangte hain, ek flood ki tarah. Cache miss hote hi saari requests seedhe database par girti hain, aur database crash ho jata hai. Fix: ek Mutex Lock. Lock lene ke liye SETNX command use hota hai. Sirf pehli request database tak jaati hai, baaki sab line mein wait karti hain. Pehli request data laati hai aur Redis ko refresh karti hai. Phir door wapas green, aur saari 9,999 requests instant serve hoti hain. Pro tip: TTL mein random jitter add karo, taaki keys ek saath expire na hon."
+    "voiceover": "Socho aapka system normal chal raha hai. Har second sau requests aati hain, sab green signal par. Tabhi Redis ki ek popular key ka TTL zero ho jata hai, aur wo expire ho jati hai. Agle hi microsecond mein das hazaar users wahi key maangte hain, ek flood ki tarah. Cache miss hote hi saari requests seedhe database par girti hain, aur database crash ho jata hai. Fix: ek Mutex Lock. Lock lene ke liye SETNX command use hota hai. Sirf pehli request database tak jaati hai, baaki sab line mein wait karti hain. Pehli request data laati hai aur Redis ko refresh karti hai. Phir door wapas green, aur saari 9,999 requests instant serve hoti hain. Pro tip: TTL mein random jitter add karo, taaki keys ek saath expire na hon.",
+    "hook": "ONE KEY EXPIRES… 10,000 REQUESTS?!",
+    "thumbnail": {
+      "emoji": "🔥",
+      "stat": "10,000 REQ",
+      "accent": "#facc15"
+    }
+  },
+  {
+    "id": "ipl_live_streaming",
+    "composition": "ExplainerScene",
+    "title": "IPL FINAL · LIVE STREAMING",
+    "subtitle": "System Design 004 · toss se ad break tak",
+    "hook": "AUTOSCALING KAFI NAHI?",
+    "thumbnail": {
+      "emoji": "🏏",
+      "stat": "5.5 CRORE LIVE",
+      "accent": "#facc15"
+    },
+    "beats": {
+      "toss": "toss",
+      "encoder": "encoder",
+      "cdn": "CDN",
+      "player": "slow",
+      "latency": "seconds",
+      "jitter": "jitter",
+      "standard": "Standard",
+      "comment": "Comment"
+    },
+    "scenes": [
+      {
+        "beat": null,
+        "kind": "counter",
+        "tag": "SYSTEM DESIGN 004",
+        "title": "Autoscaling kaafi nahi",
+        "counter": {
+          "from": 0,
+          "to": 5.5,
+          "unit": " crore",
+          "duration": 5,
+          "label": "LIVE VIEWERS · IPL FINAL",
+          "decimals": 1,
+          "color": "#facc15"
+        }
+      },
+      {
+        "beat": "toss",
+        "kind": "checklist",
+        "tag": "BEFORE THE TOSS",
+        "title": "Toss se pehle scale up",
+        "items": [
+          {
+            "label": "Match time pata hai",
+            "sub": "schedule pehle se known",
+            "delay": 0.5
+          },
+          {
+            "label": "Naye servers",
+            "sub": "ready hone mein minutes lagte hain",
+            "delay": 2.2
+          },
+          {
+            "label": "Buffer ke saath scale up",
+            "sub": "pehle se, reaction ke baad nahi",
+            "delay": 3.9
+          }
+        ],
+        "sfx": "pop",
+        "banner": "AUTOSCALING REACTS AFTER THE RUSH"
+      },
+      {
+        "beat": "encoder",
+        "kind": "steps",
+        "tag": "FIRST BALL",
+        "title": "Stream ka flow",
+        "items": [
+          {
+            "label": "Encoder",
+            "sub": "ek hi stream bhejta hai",
+            "check": true
+          },
+          {
+            "label": "Transcoder",
+            "sub": "1080p → 360p, live qualities",
+            "check": true
+          },
+          {
+            "label": "Chunker",
+            "sub": "6-second tukde, har quality ki apni list",
+            "check": true
+          }
+        ],
+        "sfx": "whoosh"
+      },
+      {
+        "beat": "cdn",
+        "kind": "hero",
+        "zoom": 1.1,
+        "sfx": "pop",
+        "tag": "CDN",
+        "title": "Paas ka CDN server",
+        "hero": {
+          "emoji": "🌐",
+          "title": "CDN SERVER",
+          "sub": "Har naya tukda hamare server se ek baar leta hai",
+          "badge": "PHIR SABKO WAHI COPY",
+          "color": "#38bdf8"
+        }
+      },
+      {
+        "beat": "player",
+        "kind": "bars",
+        "tag": "PLAYER",
+        "title": "Phone khud quality chunta hai",
+        "bars": [
+          {
+            "label": "1080p",
+            "value": 10,
+            "max": 10,
+            "color": "#22c55e",
+            "note": "net achha"
+          },
+          {
+            "label": "720p",
+            "value": 6,
+            "max": 10,
+            "color": "#facc15",
+            "note": "net slow → neeche"
+          },
+          {
+            "label": "360p",
+            "value": 3,
+            "max": 10,
+            "color": "#f87171",
+            "note": "fallback"
+          }
+        ],
+        "banner": "BACK UP SLOWLY · VIDEO CHALTA RAHTA HAI"
+      },
+      {
+        "beat": "latency",
+        "kind": "counter",
+        "tag": "TRADE-OFF",
+        "title": "Thoda peeche, par chalta raha",
+        "counter": {
+          "from": 0,
+          "to": 12,
+          "unit": " sec",
+          "duration": 4,
+          "label": "PEECHE LIVE SE",
+          "decimals": 0,
+          "color": "#facc15"
+        }
+      },
+      {
+        "beat": "jitter",
+        "kind": "checklist",
+        "sfx": "thud",
+        "tag": "AD BREAK",
+        "title": "Jitter ka kaam",
+        "items": [
+          {
+            "label": "Har phone ek saath call",
+            "sub": "ad server pe ek hi waqt",
+            "delay": 0.5
+          },
+          {
+            "label": "Random chhota wait",
+            "sub": "har phone ka alag time",
+            "delay": 2.2
+          },
+          {
+            "label": "Load smooth",
+            "sub": "peeche chalne ki head start se",
+            "delay": 3.9
+          }
+        ],
+        "banner": "JITTER · SPIKE KO SPREAD KARO"
+      },
+      {
+        "beat": "standard",
+        "kind": "cards",
+        "tag": "RECAP",
+        "title": "Standard interview design",
+        "body": "Kisi company ka actual system nahi",
+        "items": [
+          {
+            "label": "Pre-scale",
+            "sub": "toss se pehle buffer"
+          },
+          {
+            "label": "Chunk + ABR",
+            "sub": "6-sec tukde, quality adjust"
+          },
+          {
+            "label": "CDN copies",
+            "sub": "origin pe load kam"
+          },
+          {
+            "label": "Jitter",
+            "sub": "ad break spike spread"
+          }
+        ]
+      },
+      {
+        "beat": "comment",
+        "kind": "cta",
+        "tag": "IPL 2025 FINAL",
+        "title": "Kaunsa moment?",
+        "body": "Comment mein batao: toss, pehli ball, ya ad break?",
+        "banner": "SABSE MUSHKIL MOMENT KAUNSA LAGA"
+      }
+    ],
+    "voiceover": "IPL final mein saadhe paanch crore log ek saath live dekhte hain. Sirf autoscaling laga dena kaafi nahi hai. Toss se pehle hi servers scale karne padte hain, kyunki naye servers ready hone mein minutes lagte hain. Match ka time pehle se pata hai, to thoda buffer rakh ke scale up karo. Pehli ball se pehle stream ka flow dekho. Ek encoder ek hi stream bhejta hai. Transcoder usko kai qualities mein live badalta hai, jaise 1080p se 360p. Chunker har quality ko 6 second ke tukdon mein kaatta hai. Aapke paas ka CDN server har naya tukda hamare server se sirf ek baar leta hai, aur phir sabko wahi copy deta hai. Aapka phone apni speed dekh kar quality chunta hai. Net slow ho to quality neeche, phir dheere dheere upar. Video chalta rehta hai, bas kuch seconds peeche live se. Ad break aata hai, to har phone ek saath ad server ko call karta hai. Isliye har phone thoda random wait karta hai. Ye jitter hai. Ye standard interview design hai, kisi company ka actual system nahi. Comment mein batao, sabse mushkil moment kaunsa laga: toss, pehli ball, ya ad break?"
   }
 ]

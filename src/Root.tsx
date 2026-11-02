@@ -10,6 +10,8 @@ import { ExplainerScene } from './ExplainerScene';
 import type { ExplainerSceneProps } from './ExplainerScene';
 import { DirectorScene } from './DirectorScene';
 import type { DirectorSceneProps } from './DirectorScene';
+import { Thumbnail } from './Thumbnail';
+import type { ThumbnailProps } from './Thumbnail';
 
 export const FPS = 30;
 export const TAIL_SECONDS = 1.5; // silence after the voiceover so the ending is not cut off
@@ -121,6 +123,20 @@ export const RemotionRoot = () => {
           timeline: [],
           captions: [],
         }}
+      />
+      <Composition
+        id="Thumbnail"
+        component={Thumbnail}
+        durationInFrames={1}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{
+          hook: "HOOK TEXT",
+          emoji: "🔥",
+          stat: "10,000 REQ",
+          accent: "#facc15",
+        } as ThumbnailProps}
       />
     </>
   );
